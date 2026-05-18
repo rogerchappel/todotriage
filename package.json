@@ -20,7 +20,7 @@
     "build": "tsc",
     "check": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "smoke": "npm run build && node dist/cli/index.js scan examples/fixtures/tagged --out examples/output/tagged.md && node dist/cli/index.js scan examples/fixtures/stale --format json --out examples/output/stale.json --fail-on high || test $? -eq 2",
+    "smoke": "bash scripts/smoke.sh",
     "package:smoke": "npm pack --dry-run",
     "release:check": "npm run check && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
