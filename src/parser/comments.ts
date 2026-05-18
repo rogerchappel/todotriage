@@ -7,7 +7,7 @@ export interface RawTodoComment {
 
 export function extractTodoComments(source: string, markers: string[]): RawTodoComment[] {
   const markerPattern = markers.map(escapeRegex).join("|");
-  const pattern = new RegExp("\\\\b(" + markerPattern + ")(?:\\\\(([^)]+)\\\\))?:?\\\\s*(.*)", "i");
+  const pattern = new RegExp("\\b(" + markerPattern + ")(?:\\(([^)]+)\\))?:?\\s*(.*)", "i");
   const findings: RawTodoComment[] = [];
   const lines = source.split(/\r?\n/);
 
