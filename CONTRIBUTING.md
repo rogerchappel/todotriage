@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve `../todotriage`.
+Thanks for helping improve TodoTriage.
 
 This project values small, reviewable contributions with clear verification.
 
@@ -9,7 +9,7 @@ This project values small, reviewable contributions with clear verification.
 Before opening an issue:
 
 - Search existing issues.
-- Confirm the issue applies to `../todotriage`.
+- Confirm the issue applies to TodoTriage.
 - Include enough context for maintainers to understand or reproduce the request.
 
 Bug reports should include:
@@ -73,6 +73,8 @@ Examples:
 - Manual QA: provide exact steps and observed result.
 
 If verification cannot be run, explain why and provide the exact command maintainers should run.
+
+For code changes, run npm test, npm run check, npm run build, npm run smoke, and bash scripts/validate.sh.
 
 ## Maintainer Review
 
