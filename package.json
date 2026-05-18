@@ -17,6 +17,7 @@
     "SECURITY.md"
   ],
   "scripts": {
+    "prebuild": "rm -rf dist",
     "build": "tsc",
     "check": "tsc -p tsconfig.check.json",
     "test": "tsx --test tests/*.test.ts",
