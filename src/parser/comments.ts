@@ -7,9 +7,9 @@ export interface RawTodoComment {
 
 export function extractTodoComments(source: string, markers: string[]): RawTodoComment[] {
   const markerPattern = markers.map(escapeRegex).join("|");
-  const pattern = new RegExp(\`\\\\b(\${markerPattern})(?:\\\\(([^)]+)\\\\))?:?\\\\s*(.*)\`, "i");
+  const pattern = new RegExp("\\\\b(" + markerPattern + ")(?:\\\\(([^)]+)\\\\))?:?\\\\s*(.*)", "i");
   const findings: RawTodoComment[] = [];
-  const lines = source.split(/\\r?\\n/);
+  const lines = source.split(/\r?\n/);
 
   lines.forEach((lineText, index) => {
     const match = pattern.exec(lineText);
@@ -20,7 +20,7 @@ export function extractTodoComments(source: string, markers: string[]): RawTodoC
     const marker = match[1].toUpperCase();
     const tag = match[2]?.trim();
     const body = match[3]?.trim() ?? "";
-    const text = tag ? \`[\${tag}] \${body}\`.trim() : body;
+    const text = tag ? "[" + tag + "] " + body : body;
     findings.push({
       marker,
       line: index + 1,
@@ -33,5 +33,5 @@ export function extractTodoComments(source: string, markers: string[]): RawTodoC
 }
 
 function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&");
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
