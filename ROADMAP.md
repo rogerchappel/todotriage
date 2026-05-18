@@ -1,38 +1,27 @@
 # Roadmap
 
-This roadmap describes intended direction, not a binding delivery promise.
-Review it regularly and update it as the project learns from users,
-contributors, and implementation constraints.
+This roadmap describes intended direction, not a delivery promise.
 
 ## Now
 
-- Define the smallest useful project scope.
-- Keep repository setup, documentation, and verification easy for contributors
-  to follow.
-- Ship small, reviewable improvements.
+- Stabilize parser, scoring, and renderer contracts around fixture-backed tests.
+- Keep CLI output deterministic for CI and agent consumers.
+- Document release-gate usage for maintainers.
 
 ## Next
 
-- Add the next capabilities that directly support the project's primary users.
-- Improve tests, docs, and examples around the most used workflows.
-- Reduce setup friction discovered during early use.
+- Add SARIF output for GitHub code scanning.
+- Export a JSON schema for .todotriage.json.
+- Add richer nearby-symbol extraction for Python, Go, and Rust.
 
 ## Later
 
-- Consider larger features after the core workflow is stable.
-- Add automation only where it removes repeated maintainer work.
-- Revisit packaging, deployment, or integration options based on real demand.
+- Consider optional issue creation commands after local report quality is proven.
+- Add trend comparison between reports.
+- Explore editor integrations that consume JSON output.
 
 ## Not Planned
 
-- Unrelated platform rewrites without a clear migration path.
-- Mandatory dependencies on a single ecosystem unless the project requires it.
-- Public release dates before maintainers are ready to commit to them.
-
-## Roadmap Review
-
-Before each major or meaningful minor release:
-
-- Move completed user-visible work into `CHANGELOG.md`.
-- Remove stale commitments.
-- Promote only the next reviewable set of work into `Now`.
+- Hosted scanning or telemetry.
+- Automatic comment rewriting in V1.
+- LLM classification as a required dependency.
