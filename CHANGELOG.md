@@ -9,7 +9,10 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Added
 
-- Initial project setup.
+- StackForge-generated OSS CLI scaffold.
+- TypeScript scanner, parser, scorer, renderers, and CLI.
+- Fixture-backed tests and real CLI smoke script.
+- Local-first security, CI, and orchestration documentation.
 
 ## Release Links
 
