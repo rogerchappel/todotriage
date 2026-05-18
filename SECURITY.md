@@ -1,58 +1,23 @@
 # Security Policy
 
+TodoTriage is a local-first CLI. It scans local files and optional git metadata; it does not make network requests, collect telemetry, or send source code to a third party.
+
 ## Supported Versions
 
-Replace this section with the supported versions for `../todotriage`.
-
-Example:
-
-```md
-| Version | Supported |
-| --- | --- |
-| .x | Yes |
-| < .0 | No |
-```
-
-If the project does not publish versioned releases yet, say that clearly.
+Until the first stable release, only the latest commit on main is supported for security fixes.
 
 ## Reporting a Vulnerability
 
-Please do not report suspected vulnerabilities in public issues, pull requests, or discussions.
+Do not open a public issue for suspected vulnerabilities. Use GitHub private vulnerability reporting when enabled, or contact the maintainer through the repository profile.
 
-Ask maintainers for the private security reporting path before sharing details.
+Please include the affected version or commit, reproduction steps, expected impact, and any relevant proof-of-concept details.
 
-If no private reporting path exists yet, ask maintainers through public project channels for a private reporting path. Do not include exploit details, secrets, personal data, or sensitive technical details in public messages.
+## Sensitive Data
 
-## What to Include
-
-When a private reporting path is available, include:
-
-- A clear description of the issue.
-- Affected versions, files, packages, workflows, or configuration.
-- Steps to reproduce, proof of concept, or attack scenario when safe to share.
-- Potential impact.
-- Suggested mitigation, if known.
-
-## Response Expectations
-
-Maintainers review good-faith reports as capacity allows.
-
-Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `../todotriage` explicitly provides them.
+Do not attach private source trees or secrets to reports. Minimal reproductions are preferred.
 
 ## Scope
 
-In scope:
+In scope: vulnerabilities in TodoTriage, unsafe default configuration, and CI or release guidance maintained by this project.
 
-- Vulnerabilities in ../todotriage.
-- Insecure default configuration shipped by this project.
-- CI, release, or dependency guidance maintained by this project.
-
-Out of scope:
-
-- General support requests.
-- Requests for guaranteed maintenance timelines.
-- Issues in unrelated downstream projects.
-
-## Disclosure
-
-Coordinate disclosure with maintainers before publishing vulnerability details.
+Out of scope: general support requests, issues in unrelated downstream projects, and requests for guaranteed maintenance timelines.
