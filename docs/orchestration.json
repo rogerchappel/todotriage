@@ -1,0 +1,20 @@
+{
+  "name": "todotriage",
+  "version": 1,
+  "localFirst": true,
+  "commands": {
+    "scanMarkdown": "todotriage scan . --out docs/TODOS.md",
+    "scanJsonGate": "todotriage scan . --format json --fail-on high",
+    "initOssCli": "todotriage init --preset oss-cli"
+  },
+  "exitCodes": {
+    "0": "scan passed",
+    "1": "cli error",
+    "2": "scan passed but configured severity gate failed"
+  },
+  "agentRules": [
+    "Do not send scanned source outside the local machine.",
+    "Use JSON output for machine consumption.",
+    "Treat critical findings as release blockers unless explicitly waived."
+  ]
+}
