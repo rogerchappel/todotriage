@@ -1,0 +1,13 @@
+{
+  "markers": ["TODO", "FIXME", "HACK", "XXX"],
+  "ignoredPaths": ["dist/", "coverage/", "examples/output/"],
+  "staleDays": 180,
+  "oldDays": 365,
+  "releaseRiskKeywords": ["security", "release", "breaking", "auth", "migration", "production"],
+  "severityOverrides": {
+    "FIXME": "high",
+    "HACK": "medium",
+    "TODO": "low",
+    "XXX": "high"
+  }
+}
