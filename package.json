@@ -16,7 +16,9 @@
     "LICENSE",
     "SECURITY.md",
     "CHANGELOG.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "docs",
+    "SKILL.md"
   ],
   "scripts": {
     "prebuild": "rm -rf dist",
@@ -33,7 +35,9 @@
     "cli",
     "maintenance",
     "local-first",
-    "release-gate"
+    "release-gate",
+    "agent",
+    "release"
   ],
   "author": "Roger Chappel",
   "license": "MIT",
