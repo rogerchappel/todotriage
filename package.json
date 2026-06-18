@@ -1,34 +1,61 @@
 {
   "name": "todotriage",
   "version": "0.1.0",
-  "description": "Rank TODO/FIXME/HACK comments into a local maintenance queue.",
-  "license": "MIT",
-  "author": "Roger Chappel",
-  "type": "commonjs",
+  "description": "Local-first CLI that turns TODO/FIXME/HACK comments into a ranked maintenance queue.",
+  "type": "module",
   "bin": {
-    "todotriage": "bin/todotriage.js"
+    "todotriage": "./dist/cli/index.js"
+  },
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
   },
   "files": [
-    "bin",
-    "src",
+    "dist",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
     "docs",
-    "SKILL.md",
-    "README.md"
+    "SKILL.md"
   ],
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "check": "node scripts/check.js",
-    "build": "node scripts/build.js",
-    "smoke": "node bin/todotriage.js scan fixtures/debt --format markdown --out tmp/TODOS.md && node bin/todotriage.js scan fixtures/debt --format json --out tmp/TODOS.json"
+    "prebuild": "rm -rf dist",
+    "build": "tsc",
+    "check": "tsc -p tsconfig.check.json",
+    "test": "tsx --test tests/*.test.ts",
+    "smoke": "bash scripts/smoke.sh",
+    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm run check && npm test && npm run build && npm run smoke && npm run package:smoke"
   },
   "keywords": [
     "todo",
+    "technical-debt",
+    "cli",
     "maintenance",
+    "local-first",
+    "release-gate",
     "agent",
-    "release",
-    "cli"
+    "release"
   ],
+  "author": "Roger Chappel",
+  "license": "MIT",
   "engines": {
-    "node": ">=18"
-  }
+    "node": ">=20"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/todotriage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/todotriage/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/todotriage#readme"
 }
