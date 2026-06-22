@@ -6,9 +6,16 @@ TodoTriage turns TODO, FIXME, HACK, and XXX comments into a ranked local mainten
 
 ```bash
 npm install
-npm run smoke
-node bin/todotriage.js scan fixtures/debt --out tmp/TODOS.md
-node bin/todotriage.js scan fixtures/debt --format json --fail-on high
+npm run build
+node dist/cli/index.js scan fixtures/debt --out tmp/TODOS.md
+node dist/cli/index.js scan fixtures/debt --format json --fail-on high
+```
+
+After publishing, install the package binary and use it directly:
+
+```bash
+npm install -g todotriage
+todotriage scan fixtures/debt --format json --fail-on high
 ```
 
 ## Scoring
@@ -32,3 +39,17 @@ todotriage scan . --format json --fail-on high
 ```
 
 Use a high-severity gate before release branches to force explicit review of risky maintenance debt.
+
+## Development
+
+```bash
+npm test
+npm run check
+npm run build
+npm run smoke
+npm run package:smoke
+npm run release:check
+```
+
+`release:check` runs the type check, tests, compiled CLI smoke script, and
+dry-run package review before any tag or publish step.
