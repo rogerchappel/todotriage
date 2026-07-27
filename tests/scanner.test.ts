@@ -22,6 +22,19 @@ test("fixture config ignores generated paths", async () => {
   assert.equal(report.summary.total, 0);
 });
 
+test("gitignore negation re-includes a file beneath an ignored path", async () => {
+  const report = await scanProject({
+    cwd,
+    root: "examples/fixtures/gitignore-negation",
+    format: "json",
+    noGit: true
+  });
+
+  assert.equal(report.summary.total, 1);
+  assert.equal(report.findings[0]?.file, "generated/keep.ts");
+  assert.equal(report.findings[0]?.text, "should be re-included");
+});
+
 test("fail gate is marked when high findings exist", async () => {
   const report = await scanProject({
     cwd,

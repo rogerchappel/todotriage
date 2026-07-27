@@ -2,12 +2,12 @@ import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { TodoTriageConfig } from "../types.js";
 import { matchesAnyGlob } from "./glob.js";
-import { isIgnored, loadGitignore } from "./gitignore.js";
+import { hasNegatedPatterns, isIgnored, loadGitignore } from "./gitignore.js";
 import { relativePosix } from "./path-utils.js";
 
 export async function walkFiles(root: string, config: TodoTriageConfig): Promise<string[]> {
   const gitignore = await loadGitignore(root);
-  const ignored = [...config.ignoredPaths, ...gitignore];
+  const canReinclude = hasNegatedPatterns(gitignore);
   const files: string[] = [];
 
   async function visit(directory: string): Promise<void> {
@@ -17,13 +17,20 @@ export async function walkFiles(root: string, config: TodoTriageConfig): Promise
     for (const entry of entries) {
       const absolute = join(directory, entry.name);
       const relative = relativePosix(root, absolute);
-      if (isIgnored(relative, ignored)) {
-        continue;
-      }
+      const configIgnored = isIgnored(relative, config.ignoredPaths);
+      const gitIgnored = isIgnored(relative, gitignore);
 
       if (entry.isDirectory()) {
+        if (configIgnored || (gitIgnored && !canReinclude)) {
+          continue;
+        }
         await visit(absolute);
-      } else if (entry.isFile() && matchesAnyGlob(relative, config.includeGlobs)) {
+      } else if (
+        entry.isFile() &&
+        !configIgnored &&
+        !gitIgnored &&
+        matchesAnyGlob(relative, config.includeGlobs)
+      ) {
         files.push(absolute);
       }
     }

@@ -8,7 +8,7 @@ export async function loadGitignore(root: string): Promise<string[]> {
     return body
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith("#") && !line.startsWith("!"));
+      .filter((line) => line.length > 0 && !line.startsWith("#"));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return [];
@@ -18,7 +18,21 @@ export async function loadGitignore(root: string): Promise<string[]> {
 }
 
 export function isIgnored(path: string, patterns: string[]): boolean {
-  return patterns.some((pattern) => matchesGlob(path, normalizeGitignorePattern(pattern)));
+  let ignored = false;
+
+  for (const pattern of patterns) {
+    const negated = pattern.startsWith("!");
+    const candidate = negated ? pattern.slice(1) : pattern;
+    if (candidate.length > 0 && matchesGlob(path, normalizeGitignorePattern(candidate))) {
+      ignored = !negated;
+    }
+  }
+
+  return ignored;
+}
+
+export function hasNegatedPatterns(patterns: string[]): boolean {
+  return patterns.some((pattern) => pattern.startsWith("!") && pattern.length > 1);
 }
 
 function normalizeGitignorePattern(pattern: string): string {

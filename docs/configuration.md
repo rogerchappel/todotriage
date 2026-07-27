@@ -1,6 +1,10 @@
 # Configuration
 
 TodoTriage reads .todotriage.json from the scan root unless --config points to another file.
+It also reads `.gitignore` from the scan root. Rules are evaluated in order, including
+negated rules such as `!generated/keep.ts`, so a later rule can re-include a file
+beneath an ignored path. TodoTriage currently reads only the root `.gitignore`;
+nested `.gitignore` files and escaped leading `#` or `!` characters are not supported.
 
 ## Fields
 
