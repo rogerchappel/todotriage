@@ -17,7 +17,7 @@ export function renderMarkdown(report: ScanReport): string {
 
   if (report.summary.total === 0) {
     lines.push("No TODO debt markers were found.", "");
-    return lines.join("\\n") + "\\n";
+    return lines.join("\n") + "\n";
   }
 
   lines.push("## Queue", "");
@@ -47,9 +47,9 @@ export function renderMarkdown(report: ScanReport): string {
     lines.push("");
   }
 
-  return lines.join("\\n") + "\\n";
+  return lines.join("\n") + "\n";
 }
 
 function escapeMarkdown(value: string): string {
-  return value.replace(/\\|/g, "\\\\|");
+  return value.replace(/\|/g, "\\|");
 }
