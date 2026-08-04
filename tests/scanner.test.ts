@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
 import { scanProject } from "../src/core/scanner.js";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const cwd = resolve(import.meta.dirname, "..");
 
@@ -45,4 +48,18 @@ test("fail gate is marked when high findings exist", async () => {
   });
   assert.equal(report.summary.failedGate, true);
   assert.equal(report.findings[0]?.severity, "critical");
+});
+
+test("default globs scan root and nested files without reporting string literals", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-scan-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(join(root, "nested"));
+  await writeFile(join(root, "app.ts"), 'const a = "TODO string";\n// TODO root comment\n');
+  await writeFile(join(root, "nested", "app.ts"), 'const b = "FIXME string";\n/* FIXME nested comment */\n');
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+  assert.deepEqual(report.findings.map(({ file, marker }) => ({ file, marker })), [
+    { file: "nested/app.ts", marker: "FIXME" },
+    { file: "app.ts", marker: "TODO" }
+  ]);
 });
