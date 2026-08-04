@@ -22,7 +22,7 @@ export async function scanProject(options: ScanOptions): Promise<ScanReport> {
     const file = relativePosix(root, absolutePath);
     const source = await readFile(absolutePath, "utf8");
     const fileType = detectFileType(file);
-    const comments = extractTodoComments(source, config.markers);
+    const comments = extractTodoComments(source, config.markers, fileType);
 
     for (const comment of comments) {
       const priorityTag = extractPriorityTag(comment.text);

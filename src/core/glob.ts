@@ -26,8 +26,13 @@ function escapeGlob(glob: string): string {
     const char = glob[index];
     const next = glob[index + 1];
     if (char === "*" && next === "*") {
-      source += ".*";
-      index += 1;
+      if (glob[index + 2] === "/") {
+        source += "(?:.*/)?";
+        index += 2;
+      } else {
+        source += ".*";
+        index += 1;
+      }
     } else if (char === "*") {
       source += "[^/]*";
     } else {

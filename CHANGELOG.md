@@ -7,6 +7,10 @@ format and uses semantic versioning when versioned releases are published.
 
 ## [Unreleased]
 
+### Fixed
+
+- Scan supported root-level files and restrict code markers to genuine comments.
+
 ### Added
 
 - StackForge-generated OSS CLI scaffold.
