@@ -38,6 +38,23 @@ test("gitignore negation re-includes a file beneath an ignored path", async () =
   assert.equal(report.findings[0]?.text, "should be re-included");
 });
 
+test("slashless gitignore patterns match files and directories at every depth", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-gitignore-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(join(root, "build"));
+  await mkdir(join(root, "nested", "build"), { recursive: true });
+  await writeFile(join(root, ".gitignore"), "*.ts\nbuild/\n");
+  await writeFile(join(root, "root.ts"), "// TODO ignored root file\n");
+  await writeFile(join(root, "nested", "item.ts"), "// TODO ignored nested file\n");
+  await writeFile(join(root, "build", "item.js"), "// TODO ignored root directory\n");
+  await writeFile(join(root, "nested", "build", "item.js"), "// TODO ignored nested directory\n");
+  await writeFile(join(root, "nested", "keep.js"), "// TODO retained file\n");
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+
+  assert.deepEqual(report.findings.map(({ file }) => file), ["nested/keep.js"]);
+});
+
 test("fail gate is marked when high findings exist", async () => {
   const report = await scanProject({
     cwd,
