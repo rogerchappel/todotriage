@@ -5,7 +5,12 @@ export function matchesAnyGlob(path: string, globs: string[]): boolean {
 export function matchesGlob(path: string, glob: string): boolean {
   const normalized = stripLeadingDotSlash(glob);
   if (normalized.endsWith("/")) {
-    return path === normalized.slice(0, -1) || path.startsWith(normalized);
+    const directory = normalized.slice(0, -1);
+    if (!directory.includes("*")) {
+      return path === directory || path.startsWith(normalized);
+    }
+    const regex = new RegExp(`^${escapeGlob(directory)}(?:/.*)?$`);
+    return regex.test(path);
   }
 
   if (!normalized.includes("*")) {
