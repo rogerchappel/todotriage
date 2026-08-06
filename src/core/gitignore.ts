@@ -36,11 +36,10 @@ export function hasNegatedPatterns(patterns: string[]): boolean {
 }
 
 function normalizeGitignorePattern(pattern: string): string {
+  const anchored = pattern.startsWith("/");
   const trimmed = pattern.replace(/^\//, "");
-  if (trimmed.endsWith("/")) {
-    return trimmed;
-  }
-  if (!trimmed.includes("/") && !trimmed.includes("*")) {
+  const pathPart = trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed;
+  if (!anchored && !pathPart.includes("/")) {
     return `**/${trimmed}`;
   }
   return trimmed;
