@@ -19,3 +19,51 @@ test("parses init preset", () => {
   assert.equal(parsed.command, "init");
   assert.equal(parsed.preset, "oss-cli");
 });
+
+test("rejects unknown scan options", () => {
+  assert.throws(() => parseArgs(["scan", ".", "--bogus"], "/repo"), /Unknown scan option: --bogus/);
+});
+
+test("rejects duplicate scan options", () => {
+  for (const args of [
+    ["scan", "--out", "one.md", "--out", "two.md"],
+    ["scan", "--format", "json", "--format", "markdown"],
+    ["scan", "--fail-on", "high", "--fail-on", "low"],
+    ["scan", "--config", "one.json", "--config", "two.json"],
+    ["scan", "--no-git", "--no-git"]
+  ]) {
+    assert.throws(() => parseArgs(args, "/repo"), /Option may only be specified once/);
+  }
+});
+
+test("rejects missing scan option values and option tokens used as values", () => {
+  for (const option of ["--out", "--format", "--fail-on", "--config"]) {
+    assert.throws(() => parseArgs(["scan", option], "/repo"), new RegExp(`Option requires a value: ${option}`));
+    assert.throws(
+      () => parseArgs(["scan", option, "--no-git"], "/repo"),
+      new RegExp(`Option requires a value: ${option}`)
+    );
+  }
+});
+
+test("rejects extra scan paths", () => {
+  assert.throws(() => parseArgs(["scan", ".", "extra"], "/repo"), /scan accepts at most one path argument: extra/);
+});
+
+test("rejects invalid init arguments", () => {
+  assert.throws(() => parseArgs(["init", "--bogus"], "/repo"), /Unknown init option: --bogus/);
+  assert.throws(() => parseArgs(["init", "--preset"], "/repo"), /Option requires a value: --preset/);
+  assert.throws(() => parseArgs(["init", "--preset", "--bogus"], "/repo"), /Option requires a value: --preset/);
+  assert.throws(
+    () => parseArgs(["init", "--preset", "default", "--preset", "oss-cli"], "/repo"),
+    /Option may only be specified once: --preset/
+  );
+  assert.throws(() => parseArgs(["init", "unexpected"], "/repo"), /Unknown init option: unexpected/);
+});
+
+test("keeps help and version aliases unchanged", () => {
+  assert.deepEqual(parseArgs(["--help"], "/repo"), { command: "help" });
+  assert.deepEqual(parseArgs(["-h"], "/repo"), { command: "help" });
+  assert.deepEqual(parseArgs(["--version"], "/repo"), { command: "version" });
+  assert.deepEqual(parseArgs(["-v"], "/repo"), { command: "version" });
+});

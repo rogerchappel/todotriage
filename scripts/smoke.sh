@@ -31,6 +31,27 @@ if [ "$status" -ne 2 ]; then
   exit 1
 fi
 
+assert_cli_error() {
+  expected="$1"
+  shift
+  set +e
+  actual="$(node dist/cli/index.js "$@" 2>&1 >/dev/null)"
+  status=$?
+  set -e
+  if [ "$status" -ne 1 ] || [ "$actual" != "$expected" ]; then
+    printf 'Expected exit 1 and "%s" for: %s\nGot exit %s and "%s"\n' "$expected" "$*" "$status" "$actual" >&2
+    exit 1
+  fi
+}
+
+assert_cli_error "Option requires a value: --format" scan --format
+assert_cli_error "Option requires a value: --out" scan --out
+assert_cli_error "Option requires a value: --fail-on" scan --fail-on --no-git
+assert_cli_error "Option requires a value: --config" scan --config
+assert_cli_error "scan accepts at most one path argument: extra" scan . extra
+assert_cli_error "Unknown scan option: --bogus" scan . --bogus
+assert_cli_error "Unknown init option: --bogus" init --bogus
+
 test -s examples/output/tagged.md
 test -s examples/output/tagged-stdout.md
 test -s examples/output/docs.json
