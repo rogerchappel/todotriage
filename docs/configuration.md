@@ -10,9 +10,18 @@ files and escaped leading `#` or `!` characters are not supported.
 
 ## Fields
 
-- markers: marker words to detect, normalized to uppercase.
-- ignoredPaths: path prefixes or simple globs excluded from scans.
-- includeGlobs: file globs included in scans.
+- markers: an array of marker words to detect, normalized to uppercase.
+- ignoredPaths: an array of path prefixes or simple globs excluded from scans.
+- includeGlobs: an array of file globs included in scans.
+- staleDays: a finite, non-negative age threshold that increases score when git blame is available.
+- oldDays: a finite, non-negative older age threshold that increases score further. It must be greater
+  than or equal to `staleDays`, including when only one threshold overrides its default.
+- releaseRiskKeywords: an array of words that mark a finding as release-sensitive.
+- severityOverrides: an object mapping markers to `low`, `medium`, `high`, or `critical`.
+
+All array elements must be strings. Omitted fields keep their defaults; configured `ignoredPaths` are
+appended to the default exclusions, while the other array fields replace their defaults. A malformed
+field is reported with its config path and field name before scanning begins.
 
 ## Comment parsing
 
@@ -21,10 +30,6 @@ multiline template literals. The parser is intentionally lightweight: it treats 
 entire template literal, including `${...}` expressions, as string content, so TODO
 comments inside template expressions are not reported. Put actionable markers in a
 comment outside the template literal.
-- staleDays: age threshold that increases score when git blame is available.
-- oldDays: older age threshold that increases score further.
-- releaseRiskKeywords: words that mark a finding as release-sensitive.
-- severityOverrides: marker-to-severity defaults.
 
 ## Example
 
