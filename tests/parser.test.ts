@@ -33,6 +33,28 @@ test("extracts markers from multiline block comments", () => {
   assert.equal(comments[0]?.text, "follow up");
 });
 
+test("ignores comment-like text inside multiline template literals", () => {
+  const source = [
+    "const docs = `first line",
+    "// TODO: template content",
+    "/* FIXME: more template content */",
+    "last line`;",
+    "// TODO: genuine comment"
+  ].join("\n");
+  const comments = extractTodoComments(source, ["TODO", "FIXME"], "typescript");
+  assert.deepEqual(comments.map(({ marker, line, text }) => ({ marker, line, text })), [
+    { marker: "TODO", line: 5, text: "genuine comment" }
+  ]);
+});
+
+test("extracts comments following a multiline template on its closing line", () => {
+  const source = "const value = `line one\n// TODO: template content\nline three`; // FIXME: genuine comment";
+  const comments = extractTodoComments(source, ["TODO", "FIXME"], "javascript");
+  assert.deepEqual(comments.map(({ marker, line, text }) => ({ marker, line, text })), [
+    { marker: "FIXME", line: 3, text: "genuine comment" }
+  ]);
+});
+
 test("preserves document-wide Markdown marker scanning", () => {
   const comments = extractTodoComments("## Work\nTODO: document release", ["TODO"], "markdown");
   assert.equal(comments[0]?.text, "document release");
