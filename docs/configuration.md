@@ -13,6 +13,14 @@ files and escaped leading `#` or `!` characters are not supported.
 - markers: marker words to detect, normalized to uppercase.
 - ignoredPaths: path prefixes or simple globs excluded from scans.
 - includeGlobs: file globs included in scans.
+
+## Comment parsing
+
+JavaScript and TypeScript scans ignore marker-like text inside quoted strings and
+multiline template literals. The parser is intentionally lightweight: it treats an
+entire template literal, including `${...}` expressions, as string content, so TODO
+comments inside template expressions are not reported. Put actionable markers in a
+comment outside the template literal.
 - staleDays: age threshold that increases score when git blame is available.
 - oldDays: older age threshold that increases score further.
 - releaseRiskKeywords: words that mark a finding as release-sensitive.
