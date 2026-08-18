@@ -80,3 +80,21 @@ test("default globs scan root and nested files without reporting string literals
     { file: "app.ts", marker: "TODO" }
   ]);
 });
+
+test("scans comments in template expressions without reporting template text", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-template-expression-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const source = [
+    "const message = `TODO template text ${(() => {",
+    "  // TODO interpolation work",
+    "  return 1;",
+    "})()}`;"
+  ].join("\n");
+  await writeFile(join(root, "interpolation.ts"), source);
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+
+  assert.deepEqual(report.findings.map(({ file, marker, line, column, text }) => ({ file, marker, line, column, text })), [
+    { file: "interpolation.ts", marker: "TODO", line: 2, column: 6, text: "interpolation work" }
+  ]);
+});
