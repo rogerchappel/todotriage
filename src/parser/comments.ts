@@ -13,7 +13,7 @@ export function extractTodoComments(source: string, markers: string[], fileType 
   const pattern = new RegExp("\\b(" + markerPattern + ")(?![A-Za-z0-9_])(?:\\(([^)]+)\\))?:?\\s*(.*)", "i");
   const findings: RawTodoComment[] = [];
   const lines = source.split(/\r?\n/);
-  let lexicalState: LexicalState = { inBlockComment: false, quote: "" };
+  let lexicalState: LexicalState = { inBlockComment: false, quote: "", templateDepths: [] };
 
   lines.forEach((lineText, index) => {
     const result = commentSegments(lineText, fileType, lexicalState);
@@ -41,6 +41,7 @@ interface CommentSegment {
 interface LexicalState {
   inBlockComment: boolean;
   quote: string;
+  templateDepths: number[];
 }
 
 interface CommentSegmentsResult {
@@ -50,20 +51,21 @@ interface CommentSegmentsResult {
 
 function commentSegments(line: string, fileType: string, state: LexicalState): CommentSegmentsResult {
   if (fileType === "markdown" || fileType === "text") {
-    return { segments: [{ text: line, column: 1 }], state: { inBlockComment: false, quote: "" } };
+    return { segments: [{ text: line, column: 1 }], state: { inBlockComment: false, quote: "", templateDepths: [] } };
   }
   if (fileType === "shell" || fileType === "yaml") {
     const start = findUnquoted(line, "#");
     const segments = start < 0 ? [] : [{ text: line.slice(start + 1), column: start + 2 }];
-    return { segments, state: { inBlockComment: false, quote: "" } };
+    return { segments, state: { inBlockComment: false, quote: "", templateDepths: [] } };
   }
   if (fileType !== "javascript" && fileType !== "typescript" && fileType !== "css") {
-    return { segments: [], state: { inBlockComment: false, quote: "" } };
+    return { segments: [], state: { inBlockComment: false, quote: "", templateDepths: [] } };
   }
 
   const segments: CommentSegment[] = [];
   let inBlock = state.inBlockComment;
   let quote = state.quote;
+  const templateDepths = [...state.templateDepths];
   let escaped = false;
   let start = inBlock ? 0 : -1;
   for (let i = 0; i < line.length; i += 1) {
@@ -75,13 +77,32 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
       }
       continue;
     }
+    const templateDepth = templateDepths.at(-1);
+    if (templateDepth === 0) {
+      if (escaped) escaped = false;
+      else if (line[i] === "\\") escaped = true;
+      else if (line[i] === "`") templateDepths.pop();
+      else if (line[i] === "$" && line[i + 1] === "{") {
+        templateDepths[templateDepths.length - 1] = 1;
+        i += 1;
+      }
+      continue;
+    }
     if (quote) {
       if (escaped) escaped = false;
       else if (line[i] === "\\") escaped = true;
       else if (line[i] === quote) quote = "";
       continue;
     }
-    if (line[i] === '"' || line[i] === "'" || line[i] === "`") {
+    if (line[i] === '"' || line[i] === "'") {
+      quote = line[i];
+    } else if (fileType !== "css" && line[i] === "`") {
+      templateDepths.push(0);
+    } else if (fileType !== "css" && templateDepth !== undefined && line[i] === "{") {
+      templateDepths[templateDepths.length - 1] += 1;
+    } else if (fileType !== "css" && templateDepth !== undefined && line[i] === "}") {
+      templateDepths[templateDepths.length - 1] -= 1;
+    } else if (fileType === "css" && line[i] === "`") {
       quote = line[i];
     } else if (line[i] === "/" && line[i + 1] === "*") {
       inBlock = true;
@@ -93,7 +114,7 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
     }
   }
   if (inBlock) segments.push({ text: line.slice(start), column: start + 1 });
-  return { segments, state: { inBlockComment: inBlock, quote } };
+  return { segments, state: { inBlockComment: inBlock, quote, templateDepths } };
 }
 
 function findUnquoted(line: string, token: string): number {
