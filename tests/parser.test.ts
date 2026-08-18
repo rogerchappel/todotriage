@@ -55,6 +55,30 @@ test("extracts comments following a multiline template on its closing line", () 
   ]);
 });
 
+test("extracts comments from single-line template interpolation expressions", () => {
+  const source = "const value = `text ${(() => { /* TODO: interpolation work */ return 1; })()} // FIXME template text`;";
+  const comments = extractTodoComments(source, ["TODO", "FIXME"], "typescript");
+  assert.deepEqual(comments, [
+    { marker: "TODO", line: 1, column: source.indexOf("TODO") + 1, text: "interpolation work" }
+  ]);
+});
+
+test("tracks multiline nested and braced template interpolation expressions", () => {
+  const lines = [
+    "const value = `ignored // TODO template text ${",
+    "  ({ outer: { value: `nested ${(() => {",
+    "    // FIXME: nested interpolation work",
+    "    return { depth: 1 };",
+    "  })()}` } }) /* HACK: outer interpolation work */",
+    "} ignored /* XXX template text */`;"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME", "HACK", "XXX"], "javascript");
+  assert.deepEqual(comments, [
+    { marker: "FIXME", line: 3, column: lines[2].indexOf("FIXME") + 1, text: "nested interpolation work" },
+    { marker: "HACK", line: 5, column: lines[4].indexOf("HACK") + 1, text: "outer interpolation work" }
+  ]);
+});
+
 test("preserves document-wide Markdown marker scanning", () => {
   const comments = extractTodoComments("## Work\nTODO: document release", ["TODO"], "markdown");
   assert.equal(comments[0]?.text, "document release");

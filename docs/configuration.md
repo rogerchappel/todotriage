@@ -26,10 +26,10 @@ field is reported with its config path and field name before scanning begins.
 ## Comment parsing
 
 JavaScript and TypeScript scans ignore marker-like text inside quoted strings and
-multiline template literals. The parser is intentionally lightweight: it treats an
-entire template literal, including `${...}` expressions, as string content, so TODO
-comments inside template expressions are not reported. Put actionable markers in a
-comment outside the template literal.
+template literal text. Because `${...}` interpolation expressions are executable
+JavaScript, line and block comments inside those expressions are scanned, including
+inside nested templates. Braces in an interpolation are tracked so scanning resumes
+as template text only when the matching expression brace closes.
 
 ## Example
 
