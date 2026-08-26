@@ -5,7 +5,8 @@ It also reads `.gitignore` from the scan root. Rules are evaluated in order, inc
 negated rules such as `!generated/keep.ts`, so a later rule can re-include a file
 beneath an ignored path. Slashless file and directory patterns, such as `*.ts` and
 `build/`, apply at every directory depth; a leading slash anchors a pattern to the
-scan root. TodoTriage currently reads only the root `.gitignore`; nested `.gitignore`
+scan root. Standard `?` single-character patterns and bracket classes or ranges such
+as `[abc]`, `[0-9]`, and `[!a]` are supported. TodoTriage currently reads only the root `.gitignore`; nested `.gitignore`
 files and escaped leading `#` or `!` characters are not supported.
 
 ## Fields
