@@ -55,6 +55,27 @@ test("slashless gitignore patterns match files and directories at every depth", 
   assert.deepEqual(report.findings.map(({ file }) => file), ["nested/keep.js"]);
 });
 
+test("gitignore question marks and bracket classes match one path character", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-gitignore-globs-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(join(root, "nested"));
+  await writeFile(join(root, ".gitignore"), "foo?.js\nasset[0-2].ts\ncache[!a].js\n");
+  await writeFile(join(root, "foo1.js"), "// TODO ignored question match\n");
+  await writeFile(join(root, "fooxy.js"), "// TODO retained question near miss\n");
+  await writeFile(join(root, "nested", "asset2.ts"), "// TODO ignored range match\n");
+  await writeFile(join(root, "nested", "asset3.ts"), "// TODO retained range near miss\n");
+  await writeFile(join(root, "cacheb.js"), "// TODO ignored negated class match\n");
+  await writeFile(join(root, "cachea.js"), "// TODO retained negated class near miss\n");
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+
+  assert.deepEqual(report.findings.map(({ file }) => file), [
+    "cachea.js",
+    "fooxy.js",
+    "nested/asset3.ts"
+  ]);
+});
+
 test("fail gate is marked when high findings exist", async () => {
   const report = await scanProject({
     cwd,
