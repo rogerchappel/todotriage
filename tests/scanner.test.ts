@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
-import { resolve } from "node:path";
 import test from "node:test";
 import { scanProject } from "../src/core/scanner.js";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const cwd = resolve(import.meta.dirname, "..");
 
@@ -86,6 +85,48 @@ test("fail gate is marked when high findings exist", async () => {
   });
   assert.equal(report.summary.failedGate, true);
   assert.equal(report.findings[0]?.severity, "critical");
+});
+
+test("excludes a relative output path without suppressing other Markdown", async () => {
+  const project = await mkdtemp(resolve(tmpdir(), "todotriage-output-"));
+  try {
+    await mkdir(resolve(project, "docs"));
+    await writeFile(resolve(project, "docs", "notes.md"), "<!-- TODO keep this input -->\n");
+    await writeFile(resolve(project, "docs", "TODOS.md"), "<!-- FIXME generated report -->\n");
+
+    const report = await scanProject({
+      cwd: project,
+      root: ".",
+      out: "docs/TODOS.md",
+      format: "markdown",
+      noGit: true
+    });
+
+    assert.deepEqual(report.findings.map((finding) => finding.file), ["docs/notes.md"]);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("excludes an absolute output path inside the scan root", async () => {
+  const project = await mkdtemp(resolve(tmpdir(), "todotriage-output-"));
+  try {
+    const output = resolve(project, "TODOS.md");
+    await writeFile(resolve(project, "README.md"), "<!-- TODO source finding -->\n");
+    await writeFile(output, "<!-- FIXME generated report -->\n");
+
+    const report = await scanProject({
+      cwd: project,
+      root: ".",
+      out: output,
+      format: "markdown",
+      noGit: true
+    });
+
+    assert.deepEqual(report.findings.map((finding) => finding.file), ["README.md"]);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
 });
 
 test("default globs scan root and nested files without reporting string literals", async (t) => {
