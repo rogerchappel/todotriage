@@ -28,6 +28,8 @@ todotriage scan fixtures/debt --format json --fail-on high
 
 Run `todotriage init --preset oss-cli` to create `.todotriage.json`. You can adjust markers, ignored paths, and risk words. Scans are deterministic and local.
 
+When `--out` points inside the scanned root, TodoTriage excludes that exact output file from input discovery. This keeps repeated commands such as `todotriage scan . --out docs/TODOS.md` stable while continuing to scan other Markdown files.
+
 ## Safety Notes
 
 TodoTriage reads local files and writes optional local reports. It does not create remote issues, modify source comments, call hosted services, or send source code anywhere.
