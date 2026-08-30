@@ -15,7 +15,8 @@ import { walkFiles } from "./walk.js";
 export async function scanProject(options: ScanOptions): Promise<ScanReport> {
   const root = resolve(options.cwd, options.root);
   const config = await loadConfig(root, options.configPath);
-  const files = await walkFiles(root, config);
+  const outputPath = options.out ? resolve(options.cwd, options.out) : null;
+  const files = (await walkFiles(root, config)).filter((file) => file !== outputPath);
   const findings: TodoFinding[] = [];
 
   for (const absolutePath of files) {
