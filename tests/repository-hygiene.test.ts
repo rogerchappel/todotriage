@@ -31,3 +31,23 @@ test("keeps TypeScript and ESM as the only implementation and test path", async 
     );
   }
 });
+
+test("keeps canonical agent operating metadata", async () => {
+  const agents = await readFile("AGENTS.md", "utf8");
+  const requiredLines = [
+    "# Agent Operating Instructions for todotriage",
+    "This file defines how AI agents and human maintainers should work in `todotriage`.",
+    "- Project: `todotriage`",
+    "- Repository: `https://github.com/rogerchappel/todotriage`",
+    "- Primary maintainer: `Roger Chappel`",
+    "- Default branch: `main`",
+    "- Package manager: `npm`",
+    "- Branch from the latest `main` before editing."
+  ];
+
+  for (const line of requiredLines) {
+    assert.ok(agents.split("\n").includes(line), `AGENTS.md must contain: ${line}`);
+  }
+
+  assert.doesNotMatch(agents, /`\.\.\/todotriage`|: ``|latest ``/);
+});
