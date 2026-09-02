@@ -160,3 +160,18 @@ test("scans comments in template expressions without reporting template text", a
     { file: "interpolation.ts", marker: "TODO", line: 2, column: 6, text: "interpolation work" }
   ]);
 });
+
+test("scans comments adjacent to regex literals without reporting regex text", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-regex-literal-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(
+    join(root, "patterns.ts"),
+    "const pattern = /[//] TODO regex text/; // TODO review the real comment\n"
+  );
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+
+  assert.deepEqual(report.findings.map(({ file, marker, line, text }) => ({ file, marker, line, text })), [
+    { file: "patterns.ts", marker: "TODO", line: 1, text: "review the real comment" }
+  ]);
+});
