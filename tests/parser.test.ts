@@ -26,6 +26,27 @@ test("only extracts complete markers from JavaScript comments", () => {
   ]);
 });
 
+test("ignores comment delimiters inside JavaScript regular expressions", () => {
+  const lines = [
+    "const slash = /[//] TODO regex text/; // TODO genuine line comment",
+    "const block = /\\/* FIXME regex text \\*\\//; /* FIXME genuine block comment */",
+    "const escaped = /https?:\\/\\/example\\.test\\/TODO/; // HACK adjacent comment"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME", "HACK"], "typescript");
+  assert.deepEqual(comments.map(({ marker, line, column, text }) => ({ marker, line, column, text })), [
+    { marker: "TODO", line: 1, column: lines[0].indexOf("TODO genuine") + 1, text: "genuine line comment" },
+    { marker: "FIXME", line: 2, column: lines[1].indexOf("FIXME genuine") + 1, text: "genuine block comment" },
+    { marker: "HACK", line: 3, column: lines[2].indexOf("HACK adjacent") + 1, text: "adjacent comment" }
+  ]);
+});
+
+test("does not mistake division followed by a real comment for a regex", () => {
+  const source = "const ratio = total / count; // TODO verify empty input";
+  assert.deepEqual(extractTodoComments(source, ["TODO"], "javascript"), [
+    { marker: "TODO", line: 1, column: source.indexOf("TODO") + 1, text: "verify empty input" }
+  ]);
+});
+
 test("extracts markers from multiline block comments", () => {
   const comments = extractTodoComments("/* context\n * TODO: follow up\n */", ["TODO"], "javascript");
   assert.equal(comments.length, 1);

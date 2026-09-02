@@ -104,6 +104,14 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
       templateDepths[templateDepths.length - 1] -= 1;
     } else if (fileType === "css" && line[i] === "`") {
       quote = line[i];
+    } else if (
+      fileType !== "css" &&
+      line[i] === "/" &&
+      line[i + 1] !== "/" &&
+      line[i + 1] !== "*" &&
+      isRegexLiteralStart(line, i)
+    ) {
+      i = regexLiteralEnd(line, i);
     } else if (line[i] === "/" && line[i + 1] === "*") {
       inBlock = true;
       start = i + 2;
@@ -115,6 +123,38 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
   }
   if (inBlock) segments.push({ text: line.slice(start), column: start + 1 });
   return { segments, state: { inBlockComment: inBlock, quote, templateDepths } };
+}
+
+function isRegexLiteralStart(line: string, slashIndex: number): boolean {
+  const prefix = line.slice(0, slashIndex).trimEnd();
+  if (!prefix) return true;
+
+  const previous = prefix.at(-1) ?? "";
+  if (/[({[=,:;!?&|+*%^~<>-]/.test(previous)) return true;
+
+  const keyword = /(?:^|[^A-Za-z0-9_$])(return|throw|case|delete|typeof|void|new|in|instanceof|of|yield|await)$/.exec(prefix);
+  return keyword !== null;
+}
+
+function regexLiteralEnd(line: string, slashIndex: number): number {
+  let escaped = false;
+  let inCharacterClass = false;
+  for (let i = slashIndex + 1; i < line.length; i += 1) {
+    const character = line[i];
+    if (escaped) {
+      escaped = false;
+    } else if (character === "\\") {
+      escaped = true;
+    } else if (character === "[") {
+      inCharacterClass = true;
+    } else if (character === "]") {
+      inCharacterClass = false;
+    } else if (character === "/" && !inCharacterClass) {
+      while (/[A-Za-z]/.test(line[i + 1] ?? "")) i += 1;
+      return i;
+    }
+  }
+  return slashIndex;
 }
 
 function findUnquoted(line: string, token: string): number {
