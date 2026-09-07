@@ -35,6 +35,14 @@ JavaScript, line and block comments inside those expressions are scanned, includ
 inside nested templates. Braces in an interpolation are tracked so scanning resumes
 as template text only when the matching expression brace closes.
 
+Shell scans recognize `#` as a comment delimiter only at a shell token boundary,
+so parameter-removal operators such as `${name#prefix}` and `${name##prefix}`
+remain code. TypeScript scans likewise ignore `//` and `/* ... */` text between
+same-line JSX opening and closing tags while retaining comments after the closing
+tag. Comment parsing is intentionally a lightweight lexical pass rather than a
+full shell or JSX parser; multiline JSX text and ambiguous shell constructs that
+depend on runtime parsing are not interpreted beyond these documented boundaries.
+
 ## Example
 
 ```json
