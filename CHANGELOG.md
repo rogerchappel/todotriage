@@ -11,6 +11,7 @@ format and uses semantic versioning when versioned releases are published.
 
 - Scan supported root-level files and restrict code markers to genuine comments.
 - Ignore comment-like text inside multiline JavaScript and TypeScript template literals.
+- Ignore shell parameter-removal operators and same-line JSX text that resemble comments.
 
 ### Added
 
