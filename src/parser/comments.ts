@@ -54,7 +54,7 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
     return { segments: [{ text: line, column: 1 }], state: { inBlockComment: false, quote: "", templateDepths: [] } };
   }
   if (fileType === "shell" || fileType === "yaml") {
-    const start = findUnquoted(line, "#");
+    const start = fileType === "shell" ? findShellComment(line) : findUnquoted(line, "#");
     const segments = start < 0 ? [] : [{ text: line.slice(start + 1), column: start + 2 }];
     return { segments, state: { inBlockComment: false, quote: "", templateDepths: [] } };
   }
@@ -109,20 +109,32 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
       line[i] === "/" &&
       line[i + 1] !== "/" &&
       line[i + 1] !== "*" &&
+      !(line[i - 1] === "<" && /[A-Za-z]/.test(line[i + 1] ?? "")) &&
       isRegexLiteralStart(line, i)
     ) {
       i = regexLiteralEnd(line, i);
-    } else if (line[i] === "/" && line[i + 1] === "*") {
+    } else if (line[i] === "/" && line[i + 1] === "*" && !isJsxTextDelimiter(line, i)) {
       inBlock = true;
       start = i + 2;
       i += 1;
-    } else if (fileType !== "css" && line[i] === "/" && line[i + 1] === "/") {
+    } else if (
+      fileType !== "css" &&
+      line[i] === "/" &&
+      line[i + 1] === "/" &&
+      !isJsxTextDelimiter(line, i)
+    ) {
       segments.push({ text: line.slice(i + 2), column: i + 3 });
       break;
     }
   }
   if (inBlock) segments.push({ text: line.slice(start), column: start + 1 });
   return { segments, state: { inBlockComment: inBlock, quote, templateDepths } };
+}
+
+function isJsxTextDelimiter(line: string, delimiterIndex: number): boolean {
+  const before = line.slice(0, delimiterIndex);
+  const after = line.slice(delimiterIndex + 2);
+  return /<[A-Za-z][\w.:-]*(?:\s[^<>]*?)?>[^<{]*$/.test(before) && /^[^<{]*<\//.test(after);
 }
 
 function isRegexLiteralStart(line: string, slashIndex: number): boolean {
@@ -166,6 +178,19 @@ function findUnquoted(line: string, token: string): number {
     else if (quote && line[i] === quote) quote = "";
     else if (!quote && (line[i] === '"' || line[i] === "'")) quote = line[i];
     else if (!quote && line[i] === token) return i;
+  }
+  return -1;
+}
+
+function findShellComment(line: string): number {
+  let quote = "";
+  let escaped = false;
+  for (let i = 0; i < line.length; i += 1) {
+    if (escaped) escaped = false;
+    else if (line[i] === "\\") escaped = true;
+    else if (quote && line[i] === quote) quote = "";
+    else if (!quote && (line[i] === '"' || line[i] === "'")) quote = line[i];
+    else if (!quote && line[i] === "#" && (i === 0 || /[\s;&|()<>]/.test(line[i - 1] ?? ""))) return i;
   }
   return -1;
 }
