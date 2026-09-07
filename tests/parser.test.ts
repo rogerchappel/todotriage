@@ -113,6 +113,35 @@ test("only extracts shell markers from unquoted comments", () => {
   ]);
 });
 
+test("ignores shell parameter-removal operators while retaining comments", () => {
+  const lines = [
+    "trimmed=${name#TODO}",
+    "longest=${name##FIXME}",
+    "printf '%s\\n' \"$trimmed\" # TODO verify the trimmed value"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME"], "shell");
+  assert.deepEqual(comments, [
+    {
+      marker: "TODO",
+      line: 3,
+      column: lines[2].indexOf("TODO") + 1,
+      text: "verify the trimmed value"
+    }
+  ]);
+});
+
+test("ignores comment-like JSX text while retaining adjacent comments", () => {
+  const lines = [
+    "const view = <div>// TODO shown to users</div>; // TODO review the view",
+    "const block = <section>/* FIXME shown to users */</section>; /* FIXME review the block */"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME"], "typescript");
+  assert.deepEqual(comments, [
+    { marker: "TODO", line: 1, column: lines[0].indexOf("TODO review") + 1, text: "review the view" },
+    { marker: "FIXME", line: 2, column: lines[1].indexOf("FIXME review") + 1, text: "review the block" }
+  ]);
+});
+
 test("extracts nearby markdown heading", () => {
   const source = "# Title\n\n## Deploy\n\nTODO: document rollback";
   assert.equal(findNearbyContext(source, 5, "markdown"), "Deploy");
