@@ -175,3 +175,23 @@ test("scans comments adjacent to regex literals without reporting regex text", a
     { file: "patterns.ts", marker: "TODO", line: 1, text: "review the real comment" }
   ]);
 });
+
+test("does not report shell expansion or JSX text as comments", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-comment-lexing-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(
+    join(root, "expand.sh"),
+    "trimmed=${name#TODO}\nprintf '%s\\n' \"$trimmed\" # TODO verify expansion\n"
+  );
+  await writeFile(
+    join(root, "view.tsx"),
+    "export const View = () => <div>// TODO shown to users</div>; // FIXME review view\n"
+  );
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+
+  assert.deepEqual(report.findings.map(({ file, marker, text }) => ({ file, marker, text })), [
+    { file: "view.tsx", marker: "FIXME", text: "review view" },
+    { file: "expand.sh", marker: "TODO", text: "verify expansion" }
+  ]);
+});
