@@ -42,6 +42,7 @@ interface LexicalState {
   inBlockComment: boolean;
   quote: string;
   templateDepths: number[];
+  yamlBlock?: { baseIndent: number; contentIndent?: number };
 }
 
 interface CommentSegmentsResult {
@@ -54,9 +55,17 @@ function commentSegments(line: string, fileType: string, state: LexicalState): C
     return { segments: [{ text: line, column: 1 }], state: { inBlockComment: false, quote: "", templateDepths: [] } };
   }
   if (fileType === "shell" || fileType === "yaml") {
-    const start = fileType === "shell" ? findShellComment(line) : findUnquoted(line, "#");
+    if (fileType === "yaml" && state.yamlBlock) {
+      const indent = leadingSpaces(line);
+      if (!line.trim() || indent > state.yamlBlock.baseIndent) {
+        const contentIndent = state.yamlBlock.contentIndent ?? (line.trim() ? indent : undefined);
+        return { segments: [], state: { inBlockComment: false, quote: "", templateDepths: [], yamlBlock: { ...state.yamlBlock, contentIndent } } };
+      }
+    }
+    const start = fileType === "shell" ? findShellComment(line) : findYamlComment(line);
     const segments = start < 0 ? [] : [{ text: line.slice(start + 1), column: start + 2 }];
-    return { segments, state: { inBlockComment: false, quote: "", templateDepths: [] } };
+    const yamlBlock = fileType === "yaml" ? yamlBlockHeader(line.slice(0, start < 0 ? undefined : start)) : undefined;
+    return { segments, state: { inBlockComment: false, quote: "", templateDepths: [], yamlBlock } };
   }
   if (fileType !== "javascript" && fileType !== "typescript" && fileType !== "css") {
     return { segments: [], state: { inBlockComment: false, quote: "", templateDepths: [] } };
@@ -180,6 +189,32 @@ function findUnquoted(line: string, token: string): number {
     else if (!quote && line[i] === token) return i;
   }
   return -1;
+}
+
+function findYamlComment(line: string): number {
+  let quote = "";
+  let escaped = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const character = line[i];
+    if (quote === '"' && escaped) escaped = false;
+    else if (quote === '"' && character === "\\") escaped = true;
+    else if (quote === "'" && character === "'" && line[i + 1] === "'") i += 1;
+    else if (quote && character === quote) quote = "";
+    else if (!quote && (character === '"' || character === "'")) quote = character;
+    else if (!quote && character === "#" && (i === 0 || /\s/.test(line[i - 1] ?? ""))) return i;
+  }
+  return -1;
+}
+
+function yamlBlockHeader(line: string): LexicalState["yamlBlock"] {
+  const match = /(?:^|:\s*|-\s+)[|>]([1-9])?[+-]?\s*$/.exec(line);
+  if (!match) return undefined;
+  const baseIndent = leadingSpaces(line);
+  return { baseIndent, contentIndent: match[1] ? baseIndent + Number(match[1]) : undefined };
+}
+
+function leadingSpaces(line: string): number {
+  return /^ */.exec(line)?.[0].length ?? 0;
 }
 
 function findShellComment(line: string): number {
