@@ -130,6 +130,38 @@ test("ignores shell parameter-removal operators while retaining comments", () =>
   ]);
 });
 
+test("only extracts YAML markers from YAML comments", () => {
+  const lines = [
+    "plain: abc#TODO-not-a-comment",
+    "url: https://example.test/#FIXME-fragment",
+    "quoted: \"# HACK quoted text\"",
+    "single: '# XXX quoted text'",
+    "real: value  # TODO trailing comment",
+    "  # FIXME indented comment"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME", "HACK", "XXX"], "yaml");
+  assert.deepEqual(comments.map(({ marker, line, column, text }) => ({ marker, line, column, text })), [
+    { marker: "TODO", line: 5, column: lines[4].indexOf("TODO") + 1, text: "trailing comment" },
+    { marker: "FIXME", line: 6, column: lines[5].indexOf("FIXME") + 1, text: "indented comment" }
+  ]);
+});
+
+test("ignores marker-looking text in YAML block scalars", () => {
+  const source = [
+    "literal: |",
+    "  # TODO literal content",
+    "folded: >-",
+    "  # FIXME folded content",
+    "explicit: |2+ # HACK real header comment",
+    "  # XXX explicit-indent content",
+    "# TODO real comment"
+  ].join("\n");
+  assert.deepEqual(extractTodoComments(source, ["TODO", "FIXME", "HACK", "XXX"], "yaml").map(({ marker, line, text }) => ({ marker, line, text })), [
+    { marker: "HACK", line: 5, text: "real header comment" },
+    { marker: "TODO", line: 7, text: "real comment" }
+  ]);
+});
+
 test("ignores comment-like JSX text while retaining adjacent comments", () => {
   const lines = [
     "const view = <div>// TODO shown to users</div>; // TODO review the view",

@@ -195,3 +195,21 @@ test("does not report shell expansion or JSX text as comments", async (t) => {
     { file: "expand.sh", marker: "TODO", text: "verify expansion" }
   ]);
 });
+
+test("scans YAML comments without reporting scalar content", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "todotriage-yaml-comments-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, "config.yaml"), [
+    "plain: abc#TODO-not-a-comment",
+    "url: https://example.test/#FIXME-fragment",
+    "quoted: '# HACK quoted text'",
+    "script: |2-",
+    "  # TODO block content",
+    "enabled: true # FIXME review configuration"
+  ].join("\n"));
+
+  const report = await scanProject({ cwd: root, root: ".", format: "json", noGit: true });
+  assert.deepEqual(report.findings.map(({ file, marker, line, text }) => ({ file, marker, line, text })), [
+    { file: "config.yaml", marker: "FIXME", line: 6, text: "review configuration" }
+  ]);
+});
