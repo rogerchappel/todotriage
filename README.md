@@ -34,6 +34,8 @@ When `--out` points inside the scanned root, TodoTriage excludes that exact outp
 
 TodoTriage reads local files and writes optional local reports. It does not create remote issues, modify source comments, call hosted services, or send source code anywhere.
 
+For YAML files, `#` starts a comment only at the beginning of a line or after whitespace and outside quoted scalars. Marker-looking text in plain values, URL fragments, quoted values, and literal or folded block scalar content is ignored; genuine indented and trailing YAML comments are scanned.
+
 ## CI Usage
 
 ```bash
