@@ -185,3 +185,29 @@ test("extracts priority, links, and release risk", () => {
   assert.deepEqual(extractIssueLinks(text), ["#42"]);
   assert.equal(hasReleaseRisk(text, ["release"]), true);
 });
+
+test("ignores escaped hashes in YAML quoted scalars but extracts real comments", () => {
+  const lines = [
+    'double: "escaped \\# TODO quoted text"',
+    'double-comment: "escaped \\# TODO quoted text" # FIXME real comment',
+    "single: 'literal \\# HACK quoted text'",
+    "real: value # TODO actual comment"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME", "HACK"], "yaml");
+  assert.deepEqual(comments.map(({ marker, line, text }) => ({ marker, line, text })), [
+    { marker: "FIXME", line: 2, text: "real comment" },
+    { marker: "TODO", line: 4, text: "actual comment" }
+  ]);
+});
+
+test("ignores escaped hashes in shell words but extracts real comments", () => {
+  const lines = [
+    "value=escaped\\#TODO",
+    "printf '%s' escaped\\#TODO",
+    "value=escaped\\#TODO # FIXME genuine comment"
+  ];
+  const comments = extractTodoComments(lines.join("\n"), ["TODO", "FIXME"], "shell");
+  assert.deepEqual(comments.map(({ marker, line, text }) => ({ marker, line, text })), [
+    { marker: "FIXME", line: 3, text: "genuine comment" }
+  ]);
+});
